@@ -8,9 +8,7 @@ import java.util.Map;
 
 public class Day2 extends Day {
 
-    public Day2(File input) {
-        super(input);
-    }
+    public Day2(File input) { super(input); }
 
     @Override
     protected String doProblem1(String input) {
