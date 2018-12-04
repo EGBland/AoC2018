@@ -15,15 +15,11 @@ public class Day4 extends Day {
         super(input);
     }
 
-    @Override
-    protected String doProblem1(String input) {
-        Map<Integer, List<SleepRecord>> records = new TreeMap<>();
-        List<GuardRecord> guardRecords = Arrays.stream(input.split("\n")).map(s -> new GuardRecord(s)).collect(Collectors.toList());
-
+    private Map<Integer,List<SleepRecord>> getGuardRecords(String input) {
         Pattern infoRegex = Pattern.compile("Guard #(\\d+) begins shift$");
-
+        List<GuardRecord> guardRecords = Arrays.stream(input.split("\n")).map(s -> new GuardRecord(s)).collect(Collectors.toList());
         guardRecords.sort(Comparator.naturalOrder());
-
+        Map<Integer, List<SleepRecord>> records = new TreeMap<>();
         int currentGuard = -1;
         Date start = null;
         for(GuardRecord record : guardRecords) {
@@ -37,24 +33,55 @@ public class Day4 extends Day {
                 records.get(currentGuard).add(new SleepRecord(start,record.time));
             }
         }
-        Map.Entry<Integer,List<SleepRecord>> mostSleep = records.entrySet().stream().max((r1,r2) -> r1.getValue().stream().mapToInt(s -> s.getDuration()).sum() - r2.getValue().stream().mapToInt(s -> s.getDuration()).sum()).get(); // "nice" lambda expression
+
+        return records;
+    }
+
+    public Map<Integer,Integer> getMinuteFreqsForGuard(List<SleepRecord> records) {
         Map<Integer,Integer> minuteSleepFreq = new TreeMap<>();
 
         for(int i = 0; i < 60; i++) {
             minuteSleepFreq.put(i,0);
         }
 
-        for(SleepRecord record : mostSleep.getValue()) {
+        for(SleepRecord record : records) {
             int s = record.start.getMinutes(), e = record.stop.getMinutes();
             for(int i = s; i < e; i++) minuteSleepFreq.put(i,minuteSleepFreq.get(i)+1);
         }
+
+        return minuteSleepFreq;
+    }
+
+    @Override
+    protected String doProblem1(String input) {
+        Map<Integer,List<SleepRecord>> records = getGuardRecords(input);
+        Map.Entry<Integer,List<SleepRecord>> mostSleep =
+                records.entrySet().stream().max((r1,r2) -> r1.getValue().stream().mapToInt(s -> s.getDuration()).sum() - r2.getValue().stream().mapToInt(s -> s.getDuration()).sum()).get(); // "nice" lambda expression
+        Map<Integer,Integer> minuteSleepFreq = getMinuteFreqsForGuard(mostSleep.getValue());
+
         return String.valueOf(mostSleep.getKey() * minuteSleepFreq.entrySet().stream().max(Comparator.comparing(Map.Entry<Integer,Integer>::getValue)).get().getKey());
         //return out;
     }
 
     @Override
     protected String doProblem2(String input) {
-        return null;
+        Map<Integer,List<SleepRecord>> records = getGuardRecords(input);
+        Map<Integer,Map<Integer,Integer>> minuteFreqs =
+            records
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(r -> r.getKey(), r -> getMinuteFreqsForGuard(r.getValue())));
+
+        Map<Integer,Map.Entry<Integer,Integer>> guardMaxMinute =
+            minuteFreqs
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(r -> r.getKey(), r -> r.getValue().entrySet().stream().max(Comparator.comparing(Map.Entry<Integer,Integer>::getValue)).get()));
+
+        Map.Entry<Integer,Map.Entry<Integer,Integer>> mostMaximal =
+            guardMaxMinute.entrySet().stream().max((r1,r2) -> r1.getValue().getValue().compareTo(r2.getValue().getValue())).get();
+
+        return String.valueOf(mostMaximal.getKey()*mostMaximal.getValue().getKey());
     }
 
     private static class GuardRecord implements Comparable<GuardRecord> {
