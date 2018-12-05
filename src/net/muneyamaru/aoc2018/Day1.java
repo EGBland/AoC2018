@@ -1,6 +1,7 @@
 package net.muneyamaru.aoc2018;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,5 +30,13 @@ public class Day1 extends Day {
         }
 
         return String.valueOf(cfreq);
+    }
+
+    private static class CircularArrayList<T> extends ArrayList<T> {
+        @Override
+        public T get(int index) {
+            while(index < 0) index += size();
+            return super.get(index%size());
+        }
     }
 }
