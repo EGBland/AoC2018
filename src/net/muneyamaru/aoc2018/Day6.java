@@ -1,8 +1,5 @@
 package net.muneyamaru.aoc2018;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -95,51 +92,19 @@ public class Day6 extends Day {
     }
 
     private static Set<Coord> jarvis(Set<Coord> input) {
-        int minx = input.stream().mapToInt(c -> c.x).min().getAsInt(),
-            miny = input.stream().mapToInt(c -> c.y).min().getAsInt(),
-            maxx = input.stream().mapToInt(c -> c.x).max().getAsInt(),
-            maxy = input.stream().mapToInt(c -> c.y).max().getAsInt();
-        int w = maxx-minx, h = maxy-miny;
-        BufferedImage base = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
-        Graphics g = base.createGraphics();
-        g.setColor(Color.WHITE);
-        g.fillRect(0,0, w, h);
-        g.setColor(Color.BLACK);
-        input.forEach(coord -> { g.fillRect(coord.x-1-minx,coord.y-1-miny,3,3); });
-        g.dispose();
-        try {
-            ImageIO.write(base,"png",new File("frame0.png"));
-        } catch(Exception e) { e.printStackTrace(); }
-
         List<Coord> notHull = new ArrayList<>(input);
         Set<Coord> hull = new HashSet<>();
         Coord leftmost = notHull.stream().min(Comparator.comparingInt(c1->c1.x)).get();
 
         Coord pivot = leftmost;
         Coord next;
-        int frameNumber = 1;
         do {
-            BufferedImage frame = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
-            Graphics gr = frame.createGraphics();
-            gr.drawImage(base,0,0,null);
-            gr.setColor(Color.RED);
-
             next = notHull.get(0);
             for(Coord n : notHull) {
                 if(orientation(pivot,n,next) == 2) next = n;
             }
-
-            gr.drawLine(pivot.x-minx,pivot.y-miny,next.x-minx,next.y-miny);
-            gr.dispose();
-            try {
-                ImageIO.write(base,"png",new File("frame" + frameNumber + ".png"));
-            } catch(Exception e) { e.printStackTrace(); }
-            frameNumber++;
-            base = frame;
-
             pivot = next;
             hull.add(pivot);
-
         } while(!pivot.equals(leftmost));
 
         return new HashSet<>(hull);
