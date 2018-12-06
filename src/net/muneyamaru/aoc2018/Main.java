@@ -12,6 +12,7 @@ public class Main {
         days.add(new Day3(new File("input_03.txt")));
         days.add(new Day4(new File("input_04.txt")));
         days.add(new Day5(new File("input_05.txt")));
+        days.add(new Day6(new File("input_06.txt")));
 
         days.forEach(d -> {
             System.out.println(d.getClass().getSimpleName());
